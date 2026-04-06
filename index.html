@@ -38,30 +38,35 @@ video {
   <div class="glow"></div>
 </div>
 <script>
-function startVideo() {
-  const v = document.getElementById("jarvisVideo");
-  if (!v) return;
+const video = document.getElementById("jarvis");
 
-  v.muted = true;
+// analyser audio
+const audio = new AudioContext();
+const analyser = audio.createAnalyser();
 
-  let playPromise = v.play();
-  if (playPromise !== undefined) {
-    playPromise.catch(() => {
-      document.body.addEventListener("click", () => { v.play(); }, { once: true });
-    });
+navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+  const mic = audio.createMediaStreamSource(stream);
+  mic.connect(analyser);
+
+  const data = new Uint8Array(analyser.frequencyBinCount);
+
+  function animate() {
+    analyser.getByteFrequencyData(data);
+    let volume = data.reduce((a,b)=>a+b)/data.length;
+
+    if(volume > 20){
+      video.playbackRate = 1.2; // parle
+      video.style.filter = "brightness(1.5) hue-rotate(180deg)";
+    } else {
+      video.playbackRate = 0.5; // idle
+      video.style.filter = "brightness(1.1)";
+    }
+
+    requestAnimationFrame(animate);
   }
 
-  window.jarvisSpeak = function() {
-    v.muted=false;
-    v.currentTime=0;
-    v.play();
-  }
-
-  window.jarvisIdle = function() {
-    v.muted=true;
-  }
-}
-setTimeout(startVideo, 500);
+  animate();
+});
 </script>
 </body>
 </html>
