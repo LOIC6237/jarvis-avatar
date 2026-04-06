@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Jarvis Avatar</title>
+<style>
+body {margin:0; background:black;}
+.jarvis-container {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin:auto;
+}
+video {
+  width:100%;
+  border-radius:20px;
+  box-shadow:0 0 25px cyan;
+}
+.glow {
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  border-radius:20px;
+  box-shadow:0 0 60px cyan, 0 0 120px blue;
+  pointer-events:none;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse {0% {opacity:0.3;} 50% {opacity:1;} 100% {opacity:0.3;}}
+</style>
+</head>
+<body>
+<div class="jarvis-container">
+  <video id="jarvisVideo" autoplay loop muted playsinline webkit-playsinline>
+    <source src="jarvis.mp4" type="video/mp4">
+  </video>
+  <div class="glow"></div>
+</div>
+<script>
+function startVideo() {
+  const v = document.getElementById("jarvisVideo");
+  if (!v) return;
+
+  v.muted = true;
+
+  let playPromise = v.play();
+  if (playPromise !== undefined) {
+    playPromise.catch(() => {
+      document.body.addEventListener("click", () => { v.play(); }, { once: true });
+    });
+  }
+
+  window.jarvisSpeak = function() {
+    v.muted=false;
+    v.currentTime=0;
+    v.play();
+  }
+
+  window.jarvisIdle = function() {
+    v.muted=true;
+  }
+}
+setTimeout(startVideo, 500);
+</script>
+</body>
+</html>
