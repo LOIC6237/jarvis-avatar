@@ -37,36 +37,22 @@ video {
   </video>
   <div class="glow"></div>
 </div>
+<button onclick="startListening()">🎤 Parler</button>
 <script>
-const video = document.getElementById("jarvis");
+function startListening() {
+  const recognition = new webkitSpeechRecognition();
+  recognition.lang = 'fr-FR';
+  recognition.start();
 
-// analyser audio
-const audio = new AudioContext();
-const analyser = audio.createAnalyser();
-
-navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-  const mic = audio.createMediaStreamSource(stream);
-  mic.connect(analyser);
-
-  const data = new Uint8Array(analyser.frequencyBinCount);
-
-  function animate() {
-    analyser.getByteFrequencyData(data);
-    let volume = data.reduce((a,b)=>a+b)/data.length;
-
-    if(volume > 20){
-      video.playbackRate = 1.2; // parle
-      video.style.filter = "brightness(1.5) hue-rotate(180deg)";
-    } else {
-      video.playbackRate = 0.5; // idle
-      video.style.filter = "brightness(1.1)";
-    }
-
-    requestAnimationFrame(animate);
-  }
-
-  animate();
-});
+  recognition.onresult = (event) => {
+    const question = event.results[0][0].transcript;
+    fetch("/api/services/script/jarvis_ai", {
+      method: "POST",
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({question: question})
+    });
+  };
+}
 </script>
 </body>
 </html>
